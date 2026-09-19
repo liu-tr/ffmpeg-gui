@@ -5,8 +5,108 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FfmpegGui.App"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="FFmpeg GUI Tool"
+        Height="680"
+        Width="1180"
+        WindowStartupLocation="CenterScreen">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
 
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBox x:Name="FilePathTextBox"
+                     Grid.Column="0"
+                     Height="32"
+                     Margin="0,0,8,0"
+                     VerticalContentAlignment="Center"
+                     IsReadOnly="True"
+                     Text="请选择要分析的媒体文件" />
+
+            <Button x:Name="SelectFileButton"
+                    Grid.Column="1"
+                    Width="110"
+                    Height="32"
+                    Content="选择文件"
+                    Click="SelectFile_Click" />
+        </Grid>
+
+        <GroupBox Grid.Row="1"
+                  Header="媒体信息"
+                  Margin="0,12,0,12"
+                  Padding="10">
+            <UniformGrid Columns="4">
+                <StackPanel Margin="0,0,16,8">
+                    <TextBlock Text="文件名" FontWeight="Bold" />
+                    <TextBlock Text="{Binding FileName}" TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+                <StackPanel Margin="0,0,16,8">
+                    <TextBlock Text="封装格式" FontWeight="Bold" />
+                    <TextBlock Text="{Binding FormatDisplay}" />
+                </StackPanel>
+                <StackPanel Margin="0,0,16,8">
+                    <TextBlock Text="时长" FontWeight="Bold" />
+                    <TextBlock Text="{Binding DurationDisplay}" />
+                </StackPanel>
+                <StackPanel Margin="0,0,16,8">
+                    <TextBlock Text="总码率" FontWeight="Bold" />
+                    <TextBlock Text="{Binding BitRateDisplay}" />
+                </StackPanel>
+                <StackPanel Margin="0,0,16,8">
+                    <TextBlock Text="文件大小" FontWeight="Bold" />
+                    <TextBlock Text="{Binding SizeDisplay}" />
+                </StackPanel>
+                <StackPanel Margin="0,0,16,8">
+                    <TextBlock Text="视频流数量" FontWeight="Bold" />
+                    <TextBlock Text="{Binding VideoStreams.Count}" />
+                </StackPanel>
+                <StackPanel Margin="0,0,16,8">
+                    <TextBlock Text="音频流数量" FontWeight="Bold" />
+                    <TextBlock Text="{Binding AudioStreams.Count}" />
+                </StackPanel>
+            </UniformGrid>
+        </GroupBox>
+
+        <DataGrid x:Name="StreamsGrid"
+                  Grid.Row="2"
+                  ItemsSource="{Binding Streams}"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  CanUserDeleteRows="False"
+                  IsReadOnly="True"
+                  HeadersVisibility="Column"
+                  GridLinesVisibility="Horizontal"
+                  RowHeaderWidth="0"
+                  SelectionMode="Single">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="序号" Binding="{Binding Index}" Width="60" />
+                <DataGridTextColumn Header="类型" Binding="{Binding StreamTypeText}" Width="70" />
+                <DataGridTextColumn Header="编码" Binding="{Binding CodecName}" Width="110" />
+                <DataGridTextColumn Header="编码详情" Binding="{Binding CodecDisplay}" Width="220" />
+                <DataGridTextColumn Header="Profile" Binding="{Binding Profile}" Width="90" />
+                <DataGridTextColumn Header="分辨率" Binding="{Binding ResolutionText}" Width="100" />
+                <DataGridTextColumn Header="帧率" Binding="{Binding FrameRateText}" Width="90" />
+                <DataGridTextColumn Header="码率" Binding="{Binding BitRateText}" Width="100" />
+                <DataGridTextColumn Header="采样率" Binding="{Binding SampleRateText}" Width="90" />
+                <DataGridTextColumn Header="声道" Binding="{Binding ChannelsText}" Width="80" />
+                <DataGridTextColumn Header="语言" Binding="{Binding LanguageText}" Width="70" />
+                <DataGridTextColumn Header="默认" Binding="{Binding DefaultText}" Width="60" />
+                <DataGridTextColumn Header="强制" Binding="{Binding ForcedText}" Width="60" />
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <StatusBar Grid.Row="3" Margin="0,8,0,0">
+            <StatusBarItem>
+                <TextBlock x:Name="StatusTextBlock" Text="正在检查 FFmpeg..." />
+            </StatusBarItem>
+        </StatusBar>
     </Grid>
 </Window>
