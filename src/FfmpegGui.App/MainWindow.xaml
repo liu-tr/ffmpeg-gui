@@ -6,14 +6,15 @@
         xmlns:local="clr-namespace:FfmpegGui.App"
         mc:Ignorable="d"
         Title="FFmpeg GUI Tool"
-        Height="680"
-        Width="1180"
+        Height="840"
+        Width="1220"
         WindowStartupLocation="CenterScreen">
     <Grid Margin="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
@@ -103,7 +104,126 @@
             </DataGrid.Columns>
         </DataGrid>
 
-        <StatusBar Grid.Row="3" Margin="0,8,0,0">
+        <GroupBox Grid.Row="3"
+                  Header="输出设置"
+                  Margin="0,12,0,0"
+                  Padding="10">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <WrapPanel Grid.Row="0">
+                    <StackPanel Width="170" Margin="0,0,12,8">
+                        <TextBlock Text="输出模式" FontWeight="Bold" />
+                        <ComboBox x:Name="OutputModeComboBox"
+                                  Height="30"
+                                  DisplayMemberPath="DisplayName"
+                                  SelectionChanged="OutputModeComboBox_SelectionChanged" />
+                    </StackPanel>
+                    <StackPanel Width="190" Margin="0,0,12,8">
+                        <TextBlock Text="封装格式" FontWeight="Bold" />
+                        <ComboBox x:Name="ContainerComboBox"
+                                  Height="30"
+                                  DisplayMemberPath="DisplayName"
+                                  SelectionChanged="ContainerComboBox_SelectionChanged" />
+                    </StackPanel>
+                    <StackPanel Width="190" Margin="0,0,12,8">
+                        <TextBlock Text="视频编码" FontWeight="Bold" />
+                        <ComboBox x:Name="VideoCodecComboBox"
+                                  Height="30"
+                                  DisplayMemberPath="DisplayName"
+                                  SelectionChanged="VideoCodecComboBox_SelectionChanged" />
+                    </StackPanel>
+                    <StackPanel Width="180" Margin="0,0,12,8">
+                        <TextBlock Text="视频质量" FontWeight="Bold" />
+                        <ComboBox x:Name="VideoQualityComboBox"
+                                  Height="30"
+                                  DisplayMemberPath="DisplayName"
+                                  SelectionChanged="VideoQualityComboBox_SelectionChanged" />
+                    </StackPanel>
+                    <StackPanel Width="180" Margin="0,0,12,8">
+                        <TextBlock Text="音频编码" FontWeight="Bold" />
+                        <ComboBox x:Name="AudioCodecComboBox"
+                                  Height="30"
+                                  DisplayMemberPath="DisplayName"
+                                  SelectionChanged="AudioCodecComboBox_SelectionChanged" />
+                    </StackPanel>
+                    <StackPanel Width="150" Margin="0,0,12,8">
+                        <TextBlock Text="音频码率" FontWeight="Bold" />
+                        <ComboBox x:Name="AudioBitrateComboBox"
+                                  Height="30"
+                                  DisplayMemberPath="DisplayName"
+                                  SelectionChanged="AudioBitrateComboBox_SelectionChanged" />
+                    </StackPanel>
+                </WrapPanel>
+
+                <Grid Grid.Row="1" Margin="0,4,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0"
+                               Text="输出文件夹"
+                               FontWeight="Bold"
+                               VerticalAlignment="Center"
+                               Margin="0,0,8,0" />
+                    <TextBox x:Name="OutputFolderTextBox"
+                             Grid.Column="1"
+                             Height="30"
+                             VerticalContentAlignment="Center"
+                             TextChanged="OutputFolderTextBox_TextChanged" />
+                    <Button x:Name="BrowseOutputFolderButton"
+                            Grid.Column="2"
+                            Width="100"
+                            Height="30"
+                            Margin="8,0,0,0"
+                            Content="选择文件夹"
+                            Click="BrowseOutputFolder_Click" />
+                    <Button x:Name="StartButton"
+                            Grid.Column="3"
+                            Width="110"
+                            Height="30"
+                            Margin="8,0,0,0"
+                            Content="开始转码"
+                            Click="StartButton_Click" />
+                    <Button x:Name="CancelButton"
+                            Grid.Column="4"
+                            Width="80"
+                            Height="30"
+                            Margin="8,0,0,0"
+                            Content="取消"
+                            IsEnabled="False"
+                            Click="CancelButton_Click" />
+                </Grid>
+
+                <Grid Grid.Row="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <ProgressBar x:Name="ProgressBar"
+                                 Height="22"
+                                 Minimum="0"
+                                 Maximum="100"
+                                 Value="0" />
+                    <TextBlock x:Name="ProgressTextBlock"
+                               Grid.Column="1"
+                               Margin="10,0,0,0"
+                               VerticalAlignment="Center"
+                               Text="就绪" />
+                </Grid>
+            </Grid>
+        </GroupBox>
+
+        <StatusBar Grid.Row="4" Margin="0,8,0,0">
             <StatusBarItem>
                 <TextBlock x:Name="StatusTextBlock" Text="正在检查 FFmpeg..." />
             </StatusBarItem>
