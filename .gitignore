@@ -1,0 +1,34 @@
+﻿# Windows
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build outputs
+bin/
+obj/
+build/
+dist/
+out/
+publish/
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Temporary
+*.tmp
+*.temp
+*.part
