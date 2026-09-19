@@ -32,3 +32,7 @@ env/
 *.tmp
 *.temp
 *.part
+
+# FFmpeg binaries (local only)
+tools/ffmpeg/*.exe
+tools/ffmpeg/*.dll
