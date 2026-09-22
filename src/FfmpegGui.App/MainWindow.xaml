@@ -6,14 +6,15 @@
         xmlns:local="clr-namespace:FfmpegGui.App"
         mc:Ignorable="d"
         Title="FFmpeg GUI Tool"
-        Height="840"
-        Width="1220"
+        Height="900"
+        Width="1280"
         WindowStartupLocation="CenterScreen">
     <Grid Margin="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
@@ -158,6 +159,20 @@
                                   DisplayMemberPath="DisplayName"
                                   SelectionChanged="AudioBitrateComboBox_SelectionChanged" />
                     </StackPanel>
+                    <StackPanel Width="260" Margin="0,0,12,8">
+                        <TextBlock Text="视频轨道" FontWeight="Bold" />
+                        <ComboBox x:Name="VideoTrackComboBox"
+                                  Height="30"
+                                  DisplayMemberPath="TrackDisplay"
+                                  SelectionChanged="VideoTrackComboBox_SelectionChanged" />
+                    </StackPanel>
+                    <StackPanel Width="260" Margin="0,0,12,8">
+                        <TextBlock Text="音频轨道" FontWeight="Bold" />
+                        <ComboBox x:Name="AudioTrackComboBox"
+                                  Height="30"
+                                  DisplayMemberPath="TrackDisplay"
+                                  SelectionChanged="AudioTrackComboBox_SelectionChanged" />
+                    </StackPanel>
                 </WrapPanel>
 
                 <Grid Grid.Row="1" Margin="0,4,0,8">
@@ -223,7 +238,31 @@
             </Grid>
         </GroupBox>
 
-        <StatusBar Grid.Row="4" Margin="0,8,0,0">
+        <Expander Grid.Row="4"
+                  Header="FFmpeg 日志"
+                  Margin="0,12,0,0"
+                  IsExpanded="False">
+            <DockPanel>
+                <Button x:Name="ClearLogButton"
+                        DockPanel.Dock="Top"
+                        Width="90"
+                        Height="26"
+                        Margin="0,6,0,6"
+                        HorizontalAlignment="Left"
+                        Content="清空日志"
+                        Click="ClearLogButton_Click" />
+                <TextBox x:Name="LogTextBox"
+                         Height="160"
+                         IsReadOnly="True"
+                         AcceptsReturn="True"
+                         TextWrapping="NoWrap"
+                         VerticalScrollBarVisibility="Auto"
+                         HorizontalScrollBarVisibility="Auto"
+                         FontFamily="Consolas" />
+            </DockPanel>
+        </Expander>
+
+        <StatusBar Grid.Row="5" Margin="0,8,0,0">
             <StatusBarItem>
                 <TextBlock x:Name="StatusTextBlock" Text="正在检查 FFmpeg..." />
             </StatusBarItem>

@@ -8,6 +8,10 @@ namespace FfmpegGui.App;
 
 public partial class MainWindow : Window
 {
+    private const int MaxLogLines = 500;
+
+    private readonly Queue<string> _logLines = new();
+
     private FFmpegPaths? _ffmpegPaths;
     private MediaInfo? _currentMediaInfo;
     private CancellationTokenSource? _transcodeCancellation;
@@ -81,6 +85,7 @@ public partial class MainWindow : Window
                 OutputFolderTextBox.Text = Path.GetDirectoryName(dialog.FileName) ?? string.Empty;
             }
 
+            RefreshTrackOptions(mediaInfo);
             ConfigureOutputModesForMedia(mediaInfo);
             StatusTextBlock.Text = $"读取完成：{mediaInfo.FileName}";
         }
@@ -101,6 +106,24 @@ public partial class MainWindow : Window
         {
             SelectFileButton.IsEnabled = true;
             UpdateOutputControlsState();
+        }
+    }
+
+    private void RefreshTrackOptions(MediaInfo mediaInfo)
+    {
+        _isUpdatingOutputOptions = true;
+
+        try
+        {
+            VideoTrackComboBox.ItemsSource = mediaInfo.VideoStreams;
+            VideoTrackComboBox.SelectedIndex = mediaInfo.VideoStreams.Count > 0 ? 0 : -1;
+
+            AudioTrackComboBox.ItemsSource = mediaInfo.AudioStreams;
+            AudioTrackComboBox.SelectedIndex = mediaInfo.AudioStreams.Count > 0 ? 0 : -1;
+        }
+        finally
+        {
+            _isUpdatingOutputOptions = false;
         }
     }
 
@@ -184,6 +207,26 @@ public partial class MainWindow : Window
     }
 
     private void AudioBitrateComboBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        if (_isUpdatingOutputOptions)
+        {
+            return;
+        }
+
+        UpdateOutputControlsState();
+    }
+
+    private void VideoTrackComboBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        if (_isUpdatingOutputOptions)
+        {
+            return;
+        }
+
+        UpdateOutputControlsState();
+    }
+
+    private void AudioTrackComboBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
     {
         if (_isUpdatingOutputOptions)
         {
@@ -301,6 +344,8 @@ public partial class MainWindow : Window
         var container = ContainerComboBox.SelectedItem as ContainerOption;
         var videoCodec = VideoCodecComboBox.SelectedItem as VideoCodecOption;
         var audioCodec = AudioCodecComboBox.SelectedItem as AudioCodecOption;
+        var videoTrack = VideoTrackComboBox.SelectedItem as MediaStreamInfo;
+        var audioTrack = AudioTrackComboBox.SelectedItem as MediaStreamInfo;
 
         var needsVideo = outputKind != OutputKind.AudioOnly;
         var needsAudio = outputKind != OutputKind.VideoOnly;
@@ -311,6 +356,8 @@ public partial class MainWindow : Window
         VideoQualityComboBox.IsEnabled = !running && needsVideo && videoCodec is not null;
         AudioCodecComboBox.IsEnabled = !running && needsAudio && audioCodec is not null;
         AudioBitrateComboBox.IsEnabled = !running && needsAudio && audioCodec?.IsLossy == true;
+        VideoTrackComboBox.IsEnabled = !running && needsVideo && videoTrack is not null;
+        AudioTrackComboBox.IsEnabled = !running && needsAudio && audioTrack is not null;
         OutputFolderTextBox.IsEnabled = !running;
         BrowseOutputFolderButton.IsEnabled = !running;
         SelectFileButton.IsEnabled = !running;
@@ -322,8 +369,8 @@ public partial class MainWindow : Window
                     _ffmpegPaths is not null &&
                     _currentMediaInfo is not null &&
                     container is not null &&
-                    (!needsVideo || (hasVideo && videoCodec is not null)) &&
-                    (!needsAudio || (hasAudio && audioCodec is not null)) &&
+                    (!needsVideo || (hasVideo && videoCodec is not null && videoTrack is not null)) &&
+                    (!needsAudio || (hasAudio && audioCodec is not null && audioTrack is not null)) &&
                     !string.IsNullOrWhiteSpace(OutputFolderTextBox.Text);
 
         StartButton.IsEnabled = ready;
@@ -361,6 +408,8 @@ public partial class MainWindow : Window
         var audioCodec = AudioCodecComboBox.SelectedItem as AudioCodecOption;
         var videoQuality = VideoQualityComboBox.SelectedItem as VideoQualityOption;
         var audioBitrate = AudioBitrateComboBox.SelectedItem as AudioBitrateOption;
+        var videoTrack = VideoTrackComboBox.SelectedItem as MediaStreamInfo;
+        var audioTrack = AudioTrackComboBox.SelectedItem as MediaStreamInfo;
         var outputFolder = OutputFolderTextBox.Text.Trim();
 
         if (container is null)
@@ -369,15 +418,15 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (outputKind != OutputKind.AudioOnly && videoCodec is null)
+        if (outputKind != OutputKind.AudioOnly && (videoCodec is null || videoTrack is null))
         {
-            MessageBox.Show(this, "请选择视频编码器。", "输出设置", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(this, "请选择视频编码器和视频轨道。", "输出设置", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 
-        if (outputKind != OutputKind.VideoOnly && audioCodec is null)
+        if (outputKind != OutputKind.VideoOnly && (audioCodec is null || audioTrack is null))
         {
-            MessageBox.Show(this, "请选择音频编码器。", "输出设置", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(this, "请选择音频编码器和音频轨道。", "输出设置", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 
@@ -411,8 +460,10 @@ public partial class MainWindow : Window
             Container = container,
             VideoCodec = outputKind == OutputKind.AudioOnly ? null : videoCodec,
             VideoQuality = outputKind == OutputKind.AudioOnly ? null : videoQuality,
+            VideoStreamOrdinal = videoTrack is null ? 0 : VideoTrackComboBox.SelectedIndex,
             AudioCodec = outputKind == OutputKind.VideoOnly ? null : audioCodec,
-            AudioBitrate = outputKind == OutputKind.VideoOnly ? null : audioBitrate
+            AudioBitrate = outputKind == OutputKind.VideoOnly ? null : audioBitrate,
+            AudioStreamOrdinal = audioTrack is null ? 0 : AudioTrackComboBox.SelectedIndex
         };
 
         IReadOnlyList<string> arguments;
@@ -427,6 +478,7 @@ public partial class MainWindow : Window
             return;
         }
 
+        ClearLog();
         _isTranscoding = true;
         _transcodeCancellation = new CancellationTokenSource();
         ProgressBar.IsIndeterminate = false;
@@ -435,11 +487,17 @@ public partial class MainWindow : Window
         UpdateOutputControlsState();
 
         var progress = new Progress<FfmpegProgress>(UpdateProgress);
+        var logProgress = new Progress<string>(AppendLog);
 
         try
         {
             var runner = new FfmpegRunner(_ffmpegPaths);
-            await runner.RunAsync(arguments, _currentMediaInfo.Duration, progress, _transcodeCancellation.Token);
+            await runner.RunAsync(
+                arguments,
+                _currentMediaInfo.Duration,
+                progress,
+                logProgress,
+                _transcodeCancellation.Token);
 
             ProgressBar.Value = 100;
             ProgressTextBlock.Text = "转码完成";
@@ -497,6 +555,35 @@ public partial class MainWindow : Window
         _transcodeCancellation.Cancel();
     }
 
+    private void ClearLogButton_Click(object sender, RoutedEventArgs e)
+    {
+        ClearLog();
+    }
+
+    private void ClearLog()
+    {
+        _logLines.Clear();
+        LogTextBox.Text = string.Empty;
+    }
+
+    private void AppendLog(string line)
+    {
+        if (string.IsNullOrEmpty(line))
+        {
+            return;
+        }
+
+        _logLines.Enqueue(line);
+
+        while (_logLines.Count > MaxLogLines)
+        {
+            _logLines.Dequeue();
+        }
+
+        LogTextBox.Text = string.Join(Environment.NewLine, _logLines);
+        LogTextBox.ScrollToEnd();
+    }
+
     private void UpdateProgress(FfmpegProgress progress)
     {
         if (progress.Percentage is { } percentage)
@@ -529,4 +616,3 @@ public partial class MainWindow : Window
         ProgressTextBlock.Text = parts.Count > 0 ? string.Join("  |  ", parts) : "转码中...";
     }
 }
-

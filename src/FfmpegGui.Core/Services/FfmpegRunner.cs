@@ -27,6 +27,7 @@ public sealed class FfmpegRunner
         IReadOnlyList<string> arguments,
         TimeSpan? totalDuration,
         IProgress<FfmpegProgress>? progress = null,
+        IProgress<string>? logProgress = null,
         CancellationToken cancellationToken = default)
     {
         var startInfo = new ProcessStartInfo
@@ -52,7 +53,29 @@ public sealed class FfmpegRunner
             throw new InvalidOperationException("无法启动 ffmpeg 进程。");
         }
 
-        var standardErrorTask = process.StandardError.ReadToEndAsync();
+        var standardErrorOutput = new StringBuilder();
+        var standardErrorTask = Task.Run(async () =>
+        {
+            try
+            {
+                while (true)
+                {
+                    var line = await process.StandardError.ReadLineAsync(cancellationToken).ConfigureAwait(false);
+                    if (line is null)
+                    {
+                        break;
+                    }
+
+                    standardErrorOutput.AppendLine(line);
+                    logProgress?.Report(line);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // 取消时进程会被终止，这里只需要结束日志读取。
+            }
+        });
+
         TimeSpan? processedDuration = null;
         double? speed = null;
         long? totalSizeBytes = null;
@@ -88,14 +111,15 @@ public sealed class FfmpegRunner
             throw;
         }
 
-        var errorOutput = await standardErrorTask.ConfigureAwait(false);
+        await standardErrorTask.ConfigureAwait(false);
+        var errorOutput = standardErrorOutput.ToString().Trim();
 
         if (process.ExitCode != 0)
         {
             throw new FfmpegException(
                 $"ffmpeg 执行失败（退出码 {process.ExitCode}）。",
                 process.ExitCode,
-                errorOutput.Trim());
+                errorOutput);
         }
 
         progress?.Report(new FfmpegProgress(

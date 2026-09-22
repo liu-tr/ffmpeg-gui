@@ -62,4 +62,29 @@ public sealed class MediaStreamInfo
     public string DefaultText => IsDefault ? "是" : "否";
 
     public string ForcedText => IsForced ? "是" : "否";
+
+    public string TrackDisplay
+    {
+        get
+        {
+            var detail = $"#{Index} {StreamTypeText} {CodecName}";
+
+            if (StreamType == MediaStreamType.Video && Width is > 0 && Height is > 0)
+            {
+                detail += $" {Width}x{Height}";
+            }
+
+            if (StreamType == MediaStreamType.Audio && Channels is > 0)
+            {
+                detail += $" {Channels}声道";
+            }
+
+            if (!string.IsNullOrWhiteSpace(Language))
+            {
+                detail += $" [{Language}]";
+            }
+
+            return detail;
+        }
+    }
 }

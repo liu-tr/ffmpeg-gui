@@ -24,18 +24,18 @@ public static class FfmpegCommandBuilder
             case OutputKind.AudioOnly:
                 arguments.Add("-vn");
                 arguments.Add("-map");
-                arguments.Add("0:a:0?");
+                arguments.Add($"0:a:{settings.AudioStreamOrdinal}?");
                 break;
             case OutputKind.VideoOnly:
                 arguments.Add("-an");
                 arguments.Add("-map");
-                arguments.Add("0:v:0?");
+                arguments.Add($"0:v:{settings.VideoStreamOrdinal}?");
                 break;
             default:
                 arguments.Add("-map");
-                arguments.Add("0:v:0?");
+                arguments.Add($"0:v:{settings.VideoStreamOrdinal}?");
                 arguments.Add("-map");
-                arguments.Add("0:a:0?");
+                arguments.Add($"0:a:{settings.AudioStreamOrdinal}?");
                 break;
         }
 
@@ -119,3 +119,4 @@ public static class FfmpegCommandBuilder
         }
     }
 }
+

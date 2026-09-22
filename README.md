@@ -55,6 +55,8 @@ dotnet build FfmpegGui.sln -m:1
 tools/ffmpeg/
 ```
 
+`FfmpegGui.App.csproj` 会自动把该目录复制到构建输出和发布目录的 `tools/ffmpeg/` 下。
+
 ## 当前功能
 
 - 选择视频/音频文件
@@ -64,6 +66,7 @@ tools/ffmpeg/
 - 显示音频流：编码、码率、采样率、声道数
 - 显示多流信息、语言、默认轨、强制轨
 - 选择输出模式：视频 + 音频、仅视频、仅音频
+- 选择视频轨道和音频轨道
 - 选择封装格式：MP4、MKV、WebM、MOV、M4A、MP3、FLAC、WAV、OGG、Opus
 - 选择视频编码：H.264、H.265、VP9
 - 选择音频编码：AAC、MP3、Opus、Vorbis、FLAC、PCM
@@ -71,14 +74,37 @@ tools/ffmpeg/
 - 自动过滤容器与编码器的兼容组合
 - 自动生成不覆盖已有文件的输出路径
 - 调用 FFmpeg 执行转码/转封装
-- 显示进度和编码速度
+- 显示进度、编码速度和 FFmpeg 日志
 - 支持取消转码
+- 支持清空日志
+
+## 便携发布
+
+```powershell
+dotnet publish 'src\FfmpegGui.App\FfmpegGui.App.csproj' `
+  -c Release `
+  -r win-x64 `
+  --self-contained true `
+  -p:PublishSingleFile=false `
+  -o publish
+```
+
+发布后目录结构：
+
+```text
+publish/
+  FfmpegGui.App.exe
+  tools/
+    ffmpeg/
+      ffmpeg.exe
+      ffprobe.exe
+```
 
 ## 待办
 
 - 批量任务队列
-- 字幕流和多音轨选择
+- 字幕流选择
+- Copy / 仅换封装模式
 - 硬件编码
-- 更完整的 FFmpeg 日志和错误解析
-- 便携发布配置
+- 更完整的 FFmpeg 错误解析
 - FFmpeg 二进制体积优化
